@@ -1962,9 +1962,10 @@ function gerarWord(r,av,plano){
   H+='<div class="gw"><div class="gt" style="background:#EEF4FA">Perfil Natural</div><table class="gb">';
   ['D','I','S','C'].forEach(function(d){var p=pc(r.scores[d]||0,total);H+='<tr><td class="dc" style="background:'+dLhex[d]+'"><b style="color:'+dHex[d]+'">'+dN1[d]+'</b><br><small style="color:#6B7280;font-size:9pt">'+dN2[d]+'</small></td><td class="bc"><div class="bw"><div class="bf" style="width:'+p+'%;background:'+dHex[d]+'"></div></div></td><td class="pc" style="color:'+dHex[d]+';background:'+dLhex[d]+'">'+p+'%</td></tr>';});
   H+='</table></div>';
-  if(av){H+='<h3 style="margin-top:16px">Perspetiva da Chefia \u2014 '+av.chefeNome+'</h3>';H+='<div class="gw"><div class="gt" style="background:#FFF8F0">Perspetiva da Chefia</div><table class="gb">';['D','I','S','C'].forEach(function(d){var p=pc(av.scores[d]||0,at);H+='<tr><td class="dc" style="background:'+dLhex[d]+'"><b style="color:'+dHex[d]+'">'+dN1[d]+'</b><br><small style="color:#6B7280;font-size:9pt">'+dN2[d]+'</small></td><td class="bc"><div class="bw"><div class="bf" style="width:'+p+'%;background:'+dHex[d]+'"></div></div></td><td class="pc" style="color:'+dHex[d]+';background:'+dLhex[d]+'">'+p+'%</td></tr>';});H+='</table></div>';}
-  H+='<div class="rdrs">'+mkRadar(r.scores,total,'Natural',dHex[r.dominant]);
-  if(av)H+=mkRadar(av.scores,at,'Chefia',dHex[av.dominant]);
+  if(av){var isMediaColabs=av&&av.tipo==='media_colabs';var lblChefia=isMediaColabs?'Como os Colaboradores Vêem o Líder':'Perspetiva da Chefia';H+='<h3 style="margin-top:16px">'+lblChefia+' \u2014 '+av.chefeNome+'</h3>';H+='<div class="gw"><div class="gt" style="background:#FFF8F0">'+lblChefia+'</div><table class="gb">';['D','I','S','C'].forEach(function(d){var p=pc(av.scores[d]||0,at);H+='<tr><td class="dc" style="background:'+dLhex[d]+'"><b style="color:'+dHex[d]+'">'+dN1[d]+'</b><br><small style="color:#6B7280;font-size:9pt">'+dN2[d]+'</small></td><td class="bc"><div class="bw"><div class="bf" style="width:'+p+'%;background:'+dHex[d]+'"></div></div></td><td class="pc" style="color:'+dHex[d]+';background:'+dLhex[d]+'">'+p+'%</td></tr>';});H+='</table></div>';}
+  var isMediaColabs=av&&av.tipo==='media_colabs';
+  H+='<div class="rdrs">'+mkRadar(r.scores,total,isMediaColabs?'Autoavaliação':'Natural',dHex[r.dominant]);
+  if(av)H+=mkRadar(av.scores,at,isMediaColabs?'Colaboradores':'Chefia',dHex[av.dominant]);
   H+='</div>';
   H+='<h3>Palavras Descritivas</h3><table class="td"><tr>';
   ['D','I','S','C'].forEach(function(d){H+='<th style="background:'+dLhex[d]+';color:'+dHex[d]+'">'+dN1[d]+'<br><small style="font-weight:400;color:#6B7280">'+dN2[d]+'</small></th>';});
