@@ -1,0 +1,19 @@
+{
+  "name": "Avaliação Comportamental | Isabel Grazina",
+  "short_name": "DISC · IG",
+  "description": "Plataforma DISC para autoavaliação e avaliação de chefia",
+  "start_url": "/disc/",
+  "scope": "/disc/",
+  "display": "standalone",
+  "background_color": "#1a56a0",
+  "theme_color": "#1a56a0",
+  "orientation": "portrait-primary",
+  "lang": "pt",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-32.png",  "sizes": "32x32",   "type": "image/png" },
+    { "src": "icons/icon-16.png",  "sizes": "16x16",   "type": "image/png" }
+  ]
+}
