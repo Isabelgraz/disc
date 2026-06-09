@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="pt">
-<head>
+<html lang="pt"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Avaliação Comportamental | Isabel Grazina</title>
@@ -12,16 +12,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DISC · IG">
-<link rel="apple-touch-icon" href="icons/icon-180.png">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png">
-<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="file:///C:/Users/Hp/Downloads/icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="file:///C:/Users/Hp/Downloads/icons/icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="file:///C:/Users/Hp/Downloads/icons/icon-16.png">
+<link rel="manifest" href="file:///C:/Users/Hp/Downloads/manifest.json">
 <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./service-worker.js');});}</script>
 <!-- ═══ fim PWA head ═══ -->
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link href="index_files/css2.css" rel="stylesheet">
+<script src="index_files/index.umd.js"></script>
+<script src="index_files/xlsx.full.min.js"></script>
+<script src="index_files/jszip.min.js"></script>
 <style>
 :root{
   --brand:#1B3A5C;--brand-mid:#2E5F8A;--brand-light:#EAF1F8;
@@ -367,9 +367,7 @@ window.addEventListener('load', function(){ setTimeout(initFirebase, 500); });
     </div>
     <div class="ls-pin-wrap">
       <label>PIN de acesso</label>
-      <input class="ls-pin-input" id="ls-pin" type="password" maxlength="6" placeholder="· · · ·"
-        onkeydown="if(event.key==='Enter')doLogin()"
-        oninput="document.getElementById('ls-err').textContent=''">
+      <input class="ls-pin-input" id="ls-pin" type="password" maxlength="6" placeholder="· · · ·" onkeydown="if(event.key==='Enter')doLogin()" oninput="document.getElementById('ls-err').textContent=''">
       <div class="ls-err" id="ls-err"></div>
       <div class="ls-btn-row">
         <button class="btn btn-outline" style="flex:1;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#fff" onclick="backToRoles()">← Voltar</button>
@@ -406,9 +404,7 @@ window.addEventListener('load', function(){ setTimeout(initFirebase, 500); });
     <div id="pm-auth" style="display:none">
       <div class="pm-auth">
         <label>PIN master (administração)</label>
-        <input type="password" id="pm-input" maxlength="6" placeholder="· · · ·"
-          onkeydown="if(event.key==='Enter')verificarPinMaster()"
-          oninput="document.getElementById('pm-err').textContent=''">
+        <input type="password" id="pm-input" maxlength="6" placeholder="· · · ·" onkeydown="if(event.key==='Enter')verificarPinMaster()" oninput="document.getElementById('pm-err').textContent=''">
         <div class="pm-err" id="pm-err"></div>
       </div>
       <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:.75rem" onclick="verificarPinMaster()">Verificar</button>
@@ -429,7 +425,7 @@ window.addEventListener('load', function(){ setTimeout(initFirebase, 500); });
     <button class="nb active" id="nb-home" onclick="showPage('home',this)">Início</button>
     <button class="nb" id="nb-aval-lider" onclick="showPage('aval-lider',this)" style="display:none">⭐ Avaliar o Líder</button>
     <button class="nb" id="nb-teste" onclick="showPage('teste',this)">Teste DISC</button>
-    <button class="nb" id="nb-avaliacao" onclick="showPage('avaliacao',this);if(_role==='lider')setTimeout(()=>{const s=document.getElementById('av-equipa');if(s&&_equipa){s.value=_equipa;loadTeamMembers();}},100)">Avaliar a Equipa</button>
+    <button class="nb" id="nb-avaliacao" onclick="showPage('avaliacao',this);if(_role==='lider')setTimeout(()=>{const s=document.getElementById('av-equipa');if(s&amp;&amp;_equipa){s.value=_equipa;loadTeamMembers();}},100)">Avaliar a Equipa</button>
     <button class="nb" id="nb-dashboard" onclick="showPage('dashboard',this)">Dashboard</button>
     <button class="nb" id="nb-admin" onclick="showPage('admin',this)">Admin</button>
   </div>
@@ -445,7 +441,9 @@ window.addEventListener('load', function(){ setTimeout(initFirebase, 500); });
     <div class="hero-bg">
       <div class="hero-label">Desenvolvimento Profissional</div>
       <h1 class="hero-title" id="home-title">Avaliação<br><em>comportamental</em><br>para equipas</h1>
-      <p class="hero-sub" id="home-sub">Plataforma DISC para autoavaliação e avaliação de chefia. Descobre o teu perfil, compara com a perspectiva da tua chefia e evolui.</p>
+      <p class="hero-sub" id="home-sub">Plataforma DISC para 
+autoavaliação e avaliação de chefia. Descobre o teu perfil, compara com a
+ perspectiva da tua chefia e evolui.</p>
       <div id="home-ctas" style="display:flex;gap:12px;flex-wrap:wrap;position:relative;z-index:1;"></div>
       <div class="hero-sig">Isabel Grazina</div>
     </div>
@@ -465,14 +463,14 @@ window.addEventListener('load', function(){ setTimeout(initFirebase, 500); });
     <div class="card">
       <div id="sel-colab-wrap" class="fg" style="margin-bottom:1rem">
         <label>Colaborador pré-registado</label>
-        <select id="sel-colab" onchange="autoFill()"><option value="">— Seleccionar da lista —</option></select>
+        <select id="sel-colab" onchange="autoFill()"><option value="" selected="selected">— Seleccionar da lista —</option></select>
       </div>
       <div id="sel-colab-ou" style="text-align:center;font-size:12px;color:var(--hint);margin-bottom:1rem">ou preenche manualmente</div>
       <div class="form-row">
         <div class="fg"><label>Nome completo *</label><input id="p-nome" placeholder="O teu nome completo"></div>
         <div class="fg"><label>Equipa *</label>
           <select id="p-equipa">
-            <option value="">— Selecciona a equipa —</option>
+            <option value="" selected="selected">— Selecciona a equipa —</option>
             <option>Equipa A</option><option>Equipa B</option><option>Equipa C</option><option>Equipa D</option>
           </select>
         </div>
@@ -509,14 +507,14 @@ window.addEventListener('load', function(){ setTimeout(initFirebase, 500); });
         <div class="fg"><label>O teu nome (chefe) *</label><input id="av-chefe-nome" placeholder="Nome do chefe de equipa"></div>
         <div class="fg"><label>Equipa *</label>
           <select id="av-equipa" onchange="loadTeamMembers()">
-            <option value="">— Selecciona a equipa —</option>
+            <option value="" selected="selected">— Selecciona a equipa —</option>
             <option>Equipa A</option><option>Equipa B</option><option>Equipa C</option><option>Equipa D</option>
           </select>
         </div>
       </div>
       <div id="member-select-wrap" style="display:none">
         <div class="fg"><label>Membro a avaliar *</label>
-          <select id="av-membro"><option value="">— Selecciona o membro —</option></select>
+          <select id="av-membro"><option value="" selected="selected">— Selecciona o membro —</option></select>
         </div>
       </div>
     </div>
@@ -559,8 +557,7 @@ window.addEventListener('load', function(){ setTimeout(initFirebase, 500); });
       <div class="card">
         <div class="fg" style="margin-bottom:1rem">
           <label>PIN de acesso</label>
-          <input class="pin-input" id="admin-pin" type="password" maxlength="6" placeholder="······"
-            onkeydown="if(event.key==='Enter')checkPin()">
+          <input class="pin-input" id="admin-pin" type="password" maxlength="6" placeholder="······" onkeydown="if(event.key==='Enter')checkPin()">
         </div>
         <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="checkPin()">Entrar</button>
         <p style="font-size:12px;color:var(--hint);text-align:center;margin-top:.75rem">PIN: 1234</p>
@@ -2244,9 +2241,8 @@ function showAvalLiderResult(){
     scores,dominant:dom,total,
     data:new Date().toLocaleDateString('pt-PT'),
   };
-  // Guardar junto com as avaliações normais
-  const a=getAvals();a.push(aval);
-  localStorage.setItem('ig_avals',JSON.stringify(a));
+  // Guardar junto com as avaliações normais (sincroniza automaticamente com Firebase)
+  saveAval(aval);
   updateStats();
   // Mostrar resultado
   document.getElementById('al-test').style.display='none';
@@ -3556,5 +3552,6 @@ function exportCSV(){
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));a.download='DISC_resultados.csv';a.click();
 }
 </script>
-</body>
-</html>
+
+
+</body></html>
