@@ -1,19 +1,36 @@
-const CACHE = 'disc-ig-v2';
+const CACHE = 'disc-ig-v1';
+const ASSETS = [
+  '/disc/',
+  '/disc/index.html',
+  '/disc/manifest.json',
+  '/disc/icons/icon-192.png',
+  '/disc/icons/icon-512.png'
+];
 
-self.addEventListener('install', function(e) {
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(ASSETS))
+  );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', function(e) {
+self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(function(keys) {
-      return Promise.all(keys.map(function(k) { return caches.delete(k); }));
-    })
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
   );
   self.clients.claim();
 });
 
-self.addEventListener('fetch', function(e) {
-  // Deixar sempre passar para a rede — sem cache que bloqueie
-  e.respondWith(fetch(e.request));
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    fetch(e.request)
+      .then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return res;
+      })
+      .catch(() => caches.match(e.request))
+  );
 });

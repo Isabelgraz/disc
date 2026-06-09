@@ -16,6 +16,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png">
 <link rel="manifest" href="manifest.json">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./service-worker.js');});}</script>
 <!-- ═══ fim PWA head ═══ -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
@@ -1909,18 +1910,7 @@ function gerarWord(r,av,plano){
   WORD_FN+='w+="p{text-align:justify;line-height:1.6}table{border-collapse:collapse;width:100%}";';
   WORD_FN+='w+="td,th{border:1pt solid #E8EAED;padding:5pt 7pt;vertical-align:top}";';
   WORD_FN+='w+="ul{margin-left:16pt}li{margin-bottom:3pt}.tb{display:none}";';
-  WORD_FN+='w+="</style></head><body>"+c+"<!-- ═══ PWA service worker ═══ -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js')
-        .then(function(reg) { console.log('[PWA] Registado:', reg.scope); })
-        .catch(function(e) { console.warn('[PWA] Erro:', e); });
-    });
-  }
-</script>
-<!-- ═══ fim PWA body ═══ -->
-</body></html>";';
+  WORD_FN+='w+="</style></head><body>"+c+"</body></html>";';
   WORD_FN+='var b=new Blob(["\\ufeff",w],{type:"application/msword;charset=utf-8"});';
   WORD_FN+='var u=URL.createObjectURL(b);';
   WORD_FN+='var a=document.createElement("a");';
@@ -3032,7 +3022,7 @@ function imprimirCaso(){
   w.document.write('</head><body>');
   w.document.write('<h1>Estudo de Caso DISC — Ficha de Formação</h1>');
   w.document.write(el.innerHTML);
-  w.document.write('<script>window.onload=function(){window.print();}<\/script>');
+  w.document.write('<scr'+'ipt>window.onload=function(){window.print();}</sc'+'ript>');
   w.document.write('</body></html>');
   w.document.close();
 }
