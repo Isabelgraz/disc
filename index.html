@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -228,7 +229,15 @@ import { getFirestore, collection, addDoc, getDocs, doc, setDoc, onSnapshot, que
 // ── Firebase init ──────────────────────────────────────────
 // Lê config guardada pelo Admin no localStorage
 function getFBConfig(){
-  try{ return JSON.parse(localStorage.getItem('ig_fb_config')||'null'); }catch{ return null; }
+  // Credenciais fixas no código — sempre disponíveis
+  return {
+    apiKey: "AIzaSyClMMcjjKBR7_h25CbjHsf_b6LXxvCizCk",
+    authDomain: "avaliacao-disc-ig-59d5d.firebaseapp.com",
+    projectId: "avaliacao-disc-ig-59d5d",
+    storageBucket: "avaliacao-disc-ig-59d5d.appspot.com",
+    messagingSenderId: "",
+    appId: ""
+  };
 }
 
 window._fbApp=null; window._fbDB=null; window._fbReady=false;
@@ -248,6 +257,8 @@ function initFirebase(){
     escutarAvals();
     escutarColabs();
     escutarPins();
+    escutarColabs();
+    escutarPins();
   }catch(e){ console.warn('[Firebase] Erro:', e.message); }
 }
 
@@ -259,6 +270,16 @@ window.fbSaveResult=async function(r){
   }catch(e){ console.warn('[Firebase] saveResult erro:', e.message); }
 };
 
+// Guardar colaboradores no Firestore
+window.fbSaveColabs=async function(cols){
+  if(!window._fbReady) return;
+  try{ await setDoc(doc(window._fbDB,'config','colaboradores'),{lista:cols}); }catch(e){}
+};
+// Guardar PINs no Firestore
+window.fbSavePins=async function(pins){
+  if(!window._fbReady) return;
+  try{ await setDoc(doc(window._fbDB,'config','pins'),pins); }catch(e){}
+};
 // Guardar colaboradores no Firestore
 window.fbSaveColabs=async function(cols){
   if(!window._fbReady) return;
@@ -325,6 +346,24 @@ function escutarPins(){
     if(snap.exists()){
       localStorage.setItem('ig_pins',JSON.stringify(snap.data()));
     }
+  });
+}
+// Escutar colaboradores em tempo real
+function escutarColabs(){
+  if(!window._fbReady) return;
+  onSnapshot(doc(window._fbDB,'config','colaboradores'), function(snap){
+    if(snap.exists()){
+      var cols=snap.data().lista||[];
+      localStorage.setItem('ig_colabs',JSON.stringify(cols));
+      if(typeof renderAdmin==='function'&&document.getElementById('admin-panel')&&document.getElementById('admin-panel').style.display!=='none') renderAdmin();
+    }
+  });
+}
+// Escutar PINs em tempo real
+function escutarPins(){
+  if(!window._fbReady) return;
+  onSnapshot(doc(window._fbDB,'config','pins'), function(snap){
+    if(snap.exists()){ localStorage.setItem('ig_pins',JSON.stringify(snap.data())); }
   });
 }
 // Escutar avaliações em tempo real
