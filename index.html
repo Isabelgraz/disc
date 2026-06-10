@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -2706,15 +2707,29 @@ function gerarConvites(){
   }).join('');
 }
 
-function copiarLink(btn,link){
-  navigator.clipboard.writeText(link).then(()=>{
-    const orig=btn.textContent;btn.textContent='✓ Copiado!';btn.style.color='var(--s)';
-    setTimeout(()=>{btn.textContent=orig;btn.style.color='';},2000);
-  }).catch(()=>{
-    const t=document.createElement('textarea');t.value=link;
+function copiarLink(btnOrId,linkOrBtn){
+  // Suporta duas assinaturas: copiarLink(btn, link) e copiarLink(inputId, btn)
+  var btn, link;
+  if(typeof btnOrId==='string'){
+    // copiarLink(inputId, btn)
+    var el=document.getElementById(btnOrId);
+    link=el?el.value:'';
+    btn=linkOrBtn;
+  } else {
+    // copiarLink(btn, link)
+    btn=btnOrId;
+    link=linkOrBtn;
+  }
+  var texto=link||'';
+  navigator.clipboard.writeText(texto).then(function(){
+    var orig=btn.textContent;
+    btn.textContent='✓ Copiado!';btn.style.color='var(--s)';
+    setTimeout(function(){btn.textContent=orig;btn.style.color='';},2000);
+  }).catch(function(){
+    var t=document.createElement('textarea');t.value=texto;
     document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);
-    const orig=btn.textContent;btn.textContent='✓ Copiado!';
-    setTimeout(()=>{btn.textContent=orig;},2000);
+    var orig=btn.textContent;btn.textContent='✓ Copiado!';
+    setTimeout(function(){btn.textContent=orig;},2000);
   });
 }
 
