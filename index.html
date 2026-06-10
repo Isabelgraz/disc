@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -245,6 +246,8 @@ function initFirebase(){
     // Escutar novos resultados em tempo real (para o Admin)
     escutarResultados();
     escutarAvals();
+    escutarColabs();
+    escutarPins();
   }catch(e){ console.warn('[Firebase] Erro:', e.message); }
 }
 
@@ -256,6 +259,16 @@ window.fbSaveResult=async function(r){
   }catch(e){ console.warn('[Firebase] saveResult erro:', e.message); }
 };
 
+// Guardar colaboradores no Firestore
+window.fbSaveColabs=async function(cols){
+  if(!window._fbReady) return;
+  try{ await setDoc(doc(window._fbDB,'config','colaboradores'),{lista:cols}); }catch(e){}
+};
+// Guardar PINs no Firestore
+window.fbSavePins=async function(pins){
+  if(!window._fbReady) return;
+  try{ await setDoc(doc(window._fbDB,'config','pins'),pins); }catch(e){}
+};
 // Guardar avaliação no Firestore
 window.fbSaveAval=async function(a){
   if(!window._fbReady) return;
@@ -295,6 +308,25 @@ function escutarResultados(){
   });
 }
 
+// Escutar colaboradores em tempo real
+function escutarColabs(){
+  if(!window._fbReady) return;
+  onSnapshot(doc(window._fbDB,'config','colaboradores'), function(snap){
+    if(snap.exists()){
+      var cols=snap.data().lista||[];
+      localStorage.setItem('ig_colabs',JSON.stringify(cols));
+    }
+  });
+}
+// Escutar PINs em tempo real
+function escutarPins(){
+  if(!window._fbReady) return;
+  onSnapshot(doc(window._fbDB,'config','pins'), function(snap){
+    if(snap.exists()){
+      localStorage.setItem('ig_pins',JSON.stringify(snap.data()));
+    }
+  });
+}
 // Escutar avaliações em tempo real
 function escutarAvals(){
   if(!window._fbReady) return;
@@ -310,9 +342,13 @@ function escutarAvals(){
 // Sincronizar dados locais existentes para Firebase
 async function sincronizarLocalParaFB(){
   if(!window._fbReady) return;
-  var results=[];var avals=[];
+  var results=[];var avals=[];var cols=[];var pins=null;
   try{ results=JSON.parse(localStorage.getItem('ig_results')||'[]'); }catch{}
   try{ avals=JSON.parse(localStorage.getItem('ig_avals')||'[]'); }catch{}
+  try{ cols=JSON.parse(localStorage.getItem('ig_colabs')||'[]'); }catch{}
+  try{ pins=JSON.parse(localStorage.getItem('ig_pins')||'null'); }catch{}
+  if(cols.length) await setDoc(doc(window._fbDB,'config','colaboradores'),{lista:cols});
+  if(pins) await setDoc(doc(window._fbDB,'config','pins'),pins);
   for(var r of results){
     try{ await setDoc(doc(window._fbDB,'resultados',r.id||('r_'+Date.now())), r); }catch{}
   }
@@ -326,22 +362,23 @@ async function sincronizarLocalParaFB(){
 // Expor initFirebase globalmente
 window.initFirebase=initFirebase;
 
-// Ligar automaticamente ao carregar — com retry
+// Ligar automaticamente — com retry e reconexão automática
 window.addEventListener('load', function(){
   function tentarLigar(tentativa){
-    if(tentativa > 10) return; // desistir após 10 tentativas
+    if(tentativa > 15) return;
     var cfg=null;
     try{ cfg=JSON.parse(localStorage.getItem('ig_fb_config')||'null'); }catch{}
-    if(!cfg||!cfg.apiKey) return; // sem config guardada, não tentar
-    if(window._fbReady) return; // já ligado
-    try{
-      initFirebase();
-    }catch(e){}
-    if(!window._fbReady){
-      setTimeout(function(){ tentarLigar(tentativa+1); }, 1000);
-    }
+    if(!cfg||!cfg.apiKey) return;
+    if(window._fbReady) return;
+    try{ initFirebase(); }catch(e){}
+    if(!window._fbReady){ setTimeout(function(){ tentarLigar(tentativa+1); }, 1500); }
   }
-  setTimeout(function(){ tentarLigar(1); }, 800);
+  setTimeout(function(){ tentarLigar(1); }, 1000);
+  setInterval(function(){
+    var cfg=null;
+    try{ cfg=JSON.parse(localStorage.getItem('ig_fb_config')||'null'); }catch{}
+    if(cfg&&cfg.apiKey&&!window._fbReady){ try{ initFirebase(); }catch(e){} }
+  }, 10000);
 });
 </script>
 <script>
@@ -695,7 +732,7 @@ let _wordId=null;
 // PINs por defeito (editáveis no admin)
 const PINS_DEF={colaborador:"0000","Equipa A":"1111","Equipa B":"2222","Equipa C":"3333","Equipa D":"4444",admin:"1234"};
 function getPins(){try{return JSON.parse(localStorage.getItem('ig_pins'))||PINS_DEF;}catch{return PINS_DEF;}}
-function savePins(p){localStorage.setItem('ig_pins',JSON.stringify(p));}
+function savePins(p){localStorage.setItem('ig_pins',JSON.stringify(p));if(window.fbSavePins)window.fbSavePins(p);}
 
 // Estado da sessão
 let _role="",_equipa="";
@@ -704,7 +741,7 @@ let _role="",_equipa="";
 // STORAGE
 // ═══════════════════════════════════════════════
 function getColabs(){try{return JSON.parse(localStorage.getItem('ig_colabs')||'[]');}catch{return[];}}
-function saveColabs(c){localStorage.setItem('ig_colabs',JSON.stringify(c));}
+function saveColabs(c){localStorage.setItem('ig_colabs',JSON.stringify(c));if(window.fbSaveColabs)window.fbSaveColabs(c);}
 function getResults(){try{return JSON.parse(localStorage.getItem('ig_results')||'[]');}catch{return[];}}
 function getAvals(){try{return JSON.parse(localStorage.getItem('ig_avals')||'[]');}catch{return[];}}
 function saveResult(r){
@@ -2604,12 +2641,12 @@ function gerarConvites(){
   const pins=getPins();
   const base=window.location.href.split('?')[0];
   const grupos=[
-    {label:'Colaboradores',pin:pins.colab,role:'colaborador',icon:'🙋',desc:'Entra para fazer a autoavaliação DISC'},
-    {label:'Equipa A (Líder)',pin:pins.eqA,role:'lider',icon:'👥',desc:'Entra para avaliar membros da Equipa A'},
-    {label:'Equipa B (Líder)',pin:pins.eqB,role:'lider',icon:'👥',desc:'Entra para avaliar membros da Equipa B'},
-    {label:'Equipa C (Líder)',pin:pins.eqC,role:'lider',icon:'👥',desc:'Entra para avaliar membros da Equipa C'},
-    {label:'Equipa D (Líder)',pin:pins.eqD,role:'lider',icon:'👥',desc:'Entra para avaliar membros da Equipa D'},
-    {label:'Avaliar o Líder',pin:pins.colab,role:'aval_lider',icon:'⭐',desc:'Colaborador entra para avaliar o seu líder'},
+    {label:'Colaboradores',pin:pins.colaborador||pins.colab||'0000',role:'colaborador',icon:'🙋',desc:'Entra para fazer a autoavaliação DISC'},
+    {label:'Equipa A (Líder)',pin:pins['Equipa A']||pins.eqA||'1111',role:'lider',icon:'👥',desc:'Entra para avaliar membros da Equipa A'},
+    {label:'Equipa B (Líder)',pin:pins['Equipa B']||pins.eqB||'2222',role:'lider',icon:'👥',desc:'Entra para avaliar membros da Equipa B'},
+    {label:'Equipa C (Líder)',pin:pins['Equipa C']||pins.eqC||'3333',role:'lider',icon:'👥',desc:'Entra para avaliar membros da Equipa C'},
+    {label:'Equipa D (Líder)',pin:pins['Equipa D']||pins.eqD||'4444',role:'lider',icon:'👥',desc:'Entra para avaliar membros da Equipa D'},
+    {label:'Avaliar o Líder',pin:pins.colaborador||pins.colab||'0000',role:'aval_lider',icon:'⭐',desc:'Colaborador entra para avaliar o seu líder'},
   ];
   const el=document.getElementById('convites-lista');
   if(!el)return;
@@ -3410,11 +3447,11 @@ function renderAdmin(){
         ${(()=>{
           const pins2=getPins();
           const grupos=[
-            {id:'colab',label:'Colaboradores',pin:pins2.colab,icon:'👤',cor:'var(--brand)'},
-            {id:'eqA',label:'Equipa A — Líder',pin:pins2.eqA,icon:'👥',cor:'var(--d)'},
-            {id:'eqB',label:'Equipa B — Líder',pin:pins2.eqB,icon:'👥',cor:'var(--i)'},
-            {id:'eqC',label:'Equipa C — Líder',pin:pins2.eqC,icon:'👥',cor:'var(--s)'},
-            {id:'eqD',label:'Equipa D — Líder',pin:pins2.eqD,icon:'👥',cor:'var(--c)'},
+            {id:'colab',label:'Colaboradores',pin:pins2.colaborador||pins2.colab||'0000',icon:'👤',cor:'var(--brand)'},
+            {id:'eqA',label:'Equipa A — Líder',pin:pins2['Equipa A']||pins2.eqA||'1111',icon:'👥',cor:'var(--d)'},
+            {id:'eqB',label:'Equipa B — Líder',pin:pins2['Equipa B']||pins2.eqB||'2222',icon:'👥',cor:'var(--i)'},
+            {id:'eqC',label:'Equipa C — Líder',pin:pins2['Equipa C']||pins2.eqC||'3333',icon:'👥',cor:'var(--s)'},
+            {id:'eqD',label:'Equipa D — Líder',pin:pins2['Equipa D']||pins2.eqD||'4444',icon:'👥',cor:'var(--c)'},
           ];
           return grupos.map(g=>`
             <div class="card" style="border-top:3px solid ${g.cor};padding:.85rem">
