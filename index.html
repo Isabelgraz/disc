@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -349,24 +350,7 @@ function escutarPins(){
     }
   });
 }
-// Escutar colaboradores em tempo real
-function escutarColabs(){
-  if(!window._fbReady) return;
-  onSnapshot(doc(window._fbDB,'config','colaboradores'), function(snap){
-    if(snap.exists()){
-      var cols=snap.data().lista||[];
-      localStorage.setItem('ig_colabs',JSON.stringify(cols));
-      if(typeof renderAdmin==='function'&&document.getElementById('admin-panel')&&document.getElementById('admin-panel').style.display!=='none') renderAdmin();
-    }
-  });
-}
-// Escutar PINs em tempo real
-function escutarPins(){
-  if(!window._fbReady) return;
-  onSnapshot(doc(window._fbDB,'config','pins'), function(snap){
-    if(snap.exists()){ localStorage.setItem('ig_pins',JSON.stringify(snap.data())); }
-  });
-}
+
 // Escutar avaliações em tempo real
 function escutarAvals(){
   if(!window._fbReady) return;
