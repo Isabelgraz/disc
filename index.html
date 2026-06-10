@@ -326,8 +326,23 @@ async function sincronizarLocalParaFB(){
 // Expor initFirebase globalmente
 window.initFirebase=initFirebase;
 
-// Tentar ligar automaticamente ao carregar
-window.addEventListener('load', function(){ setTimeout(initFirebase, 500); });
+// Ligar automaticamente ao carregar — com retry
+window.addEventListener('load', function(){
+  function tentarLigar(tentativa){
+    if(tentativa > 10) return; // desistir após 10 tentativas
+    var cfg=null;
+    try{ cfg=JSON.parse(localStorage.getItem('ig_fb_config')||'null'); }catch{}
+    if(!cfg||!cfg.apiKey) return; // sem config guardada, não tentar
+    if(window._fbReady) return; // já ligado
+    try{
+      initFirebase();
+    }catch(e){}
+    if(!window._fbReady){
+      setTimeout(function(){ tentarLigar(tentativa+1); }, 1000);
+    }
+  }
+  setTimeout(function(){ tentarLigar(1); }, 800);
+});
 </script>
 </head>
 <body>
@@ -3257,6 +3272,10 @@ function checkPin(){
   else{alert('PIN incorrecto.');document.getElementById('admin-pin').value='';}
 }
 function renderAdmin(){
+  // Tentar religar Firebase se desligado
+  if(!window._fbReady && window.initFirebase){
+    try{ window.initFirebase(); }catch(e){}
+  }
   const results=getResults();const avals=getAvals();const cols=getColabs();const pins=getPins();
   const teams=[...new Set([...results.map(r=>r.equipa),...avals.map(a=>a.equipa)])].filter(Boolean);
   const el=document.getElementById('admin-panel');
