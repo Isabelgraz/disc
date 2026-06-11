@@ -2,6 +2,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -386,18 +387,15 @@ async function sincronizarLocalParaFB(){
 // Expor initFirebase globalmente
 window.initFirebase=initFirebase;
 
-// Ligar automaticamente — com retry e reconexão automática
+// Ligar automaticamente sempre — credenciais fixas no código
 window.addEventListener('load', function(){
   function tentarLigar(tentativa){
-    if(tentativa > 15) return;
-    var cfg=null;
-    try{ cfg=JSON.parse(localStorage.getItem('ig_fb_config')||'null'); }catch{}
-    if(!cfg||!cfg.apiKey) return;
+    if(tentativa > 20) return;
     if(window._fbReady) return;
     try{ initFirebase(); }catch(e){}
-    if(!window._fbReady){ setTimeout(function(){ tentarLigar(tentativa+1); }, 1500); }
+    if(!window._fbReady){ setTimeout(function(){ tentarLigar(tentativa+1); }, 1000); }
   }
-  setTimeout(function(){ tentarLigar(1); }, 1000);
+  tentarLigar(1);
   setInterval(function(){
     var cfg=null;
     try{ cfg=JSON.parse(localStorage.getItem('ig_fb_config')||'null'); }catch{}
@@ -773,16 +771,32 @@ function saveResult(r){
   const i=a.findIndex(x=>x.id===r.id);
   if(i>=0)a[i]=r;else a.push(r);
   localStorage.setItem('ig_results',JSON.stringify(a));
-  // Sincronizar com Firebase se disponível
-  if(window.fbSaveResult) window.fbSaveResult(r);
+  // Sincronizar com Firebase — com retry se não estiver pronto
+  function tentarGuardar(tentativa){
+    if(tentativa>10) return;
+    if(window._fbReady&&window.fbSaveResult){
+      window.fbSaveResult(r);
+    } else {
+      setTimeout(function(){ tentarGuardar(tentativa+1); }, 1000);
+    }
+  }
+  tentarGuardar(1);
 }
 function saveAval(r){
   const a=getAvals();
   if(!r.id) r.id='av_'+Date.now()+'_'+Math.random().toString(36).slice(2);
   a.push(r);
   localStorage.setItem('ig_avals',JSON.stringify(a));
-  // Sincronizar com Firebase se disponível
-  if(window.fbSaveAval) window.fbSaveAval(r);
+  // Sincronizar com Firebase — com retry se não estiver pronto
+  function tentarGuardar(tentativa){
+    if(tentativa>10) return;
+    if(window._fbReady&&window.fbSaveAval){
+      window.fbSaveAval(r);
+    } else {
+      setTimeout(function(){ tentarGuardar(tentativa+1); }, 1000);
+    }
+  }
+  tentarGuardar(1);
 }
 function getNarrativa(perfil, nome){
   const tpl=DI[perfil]&&DI[perfil].narrativa?DI[perfil].narrativa:'';
@@ -1606,7 +1620,7 @@ function renderDesafiosDash(){
     D:{cor:'var(--d)',cl:'var(--d-light)',label:'Dominância / Decisão',
       desafiosPrincipais:[
         {t:'Impaciência com processos',d:'Tende a acelerar decisões antes de ouvir todos. Pode criar ressentimento silencioso na equipa.'},
-        {t:'Dificuldade em delegar',d:'Prefere fazer do que explicar. Resultado: gargalo de trabalho e equipa que não cresce.'},
+        {t:'Dificuldade em delegar',d:'Prefere fazer do que explicar. Resultado: estrangulamento de trabalho e equipa que não cresce.'},
         {t:'Impacto emocional ignorado',d:'Foca no resultado e esquece que as pessoas precisam de ser ouvidas antes de avançar.'},
         {t:'Liderança autoritária sob pressão',d:'Quando o tempo aperta, o D tende a impor em vez de envolver. Cria resistência.'},
       ],
@@ -1617,7 +1631,7 @@ function renderDesafiosDash(){
       ],
       delegacao:[
         'Define o RESULTADO esperado — não o processo. Deixa a pessoa escolher como chegar lá.',
-        'Marca um checkpoint a meio do prazo em vez de verificar diariamente.',
+        'Marca um ponto de controlo a meio do prazo em vez de verificar diariamente.',
         'Aceita que "suficientemente bom" é melhor do que "perfeito mas feito por ti".',
         'Diz: "Confio em ti para decidir X. Só me avisa se precisares de mim."',
       ]},
@@ -1625,7 +1639,7 @@ function renderDesafiosDash(){
       desafiosPrincipais:[
         {t:'Comprometimento excessivo',d:'Diz sim a tudo. Resultado: prioridades confusas, prazos perdidos, equipa frustrada.'},
         {t:'Fuga a conversas difíceis',d:'Prefere o conflito ao humor do que o confronto directo. Problemas acumulam.'},
-        {t:'Falta de follow-through',d:'A ideia entusiasma, a execução cansa. Projectos ficam a meio.'},
+        {t:'Falta de continuidade',d:'A ideia entusiasma, a execução cansa. Projectos ficam a meio.'},
         {t:'Dependência de aprovação',d:'Quando não há reconhecimento, a motivação cai. Difícil de manter em ambientes críticos.'},
       ],
       comunicacao:[
@@ -1635,8 +1649,8 @@ function renderDesafiosDash(){
       ],
       delegacao:[
         'Antes de aceitar uma tarefa, pergunta: "Tenho capacidade para isto esta semana?"',
-        'Usa uma lista de "stop doing" — identifica o que vais parar para poder aceitar o novo.',
-        'Define um parceiro de accountability que te pergunta semanalmente: "O que ficou por fazer?"',
+        'Usa uma lista de "deixar de fazer" — identifica o que vais parar para poder aceitar o novo.',
+        'Define um parceiro de responsabilização que te pergunta semanalmente: "O que ficou por fazer?"',
         'Comunica proactivamente quando não consegues cumprir — antes do prazo, não depois.',
       ]},
     S:{cor:'var(--s)',cl:'var(--s-light)',label:'Estabilidade / Serenidade',
@@ -1654,13 +1668,13 @@ function renderDesafiosDash(){
       delegacao:[
         'Quando delegas, define claramente o que o outro pode e não pode decidir sozinho.',
         'Usa frases como: "Podes avançar com X, mas consulta-me antes de Y."',
-        'Faz check-ins regulares — não esperas pelo relatório final para perceber como está.',
+        'Faz verificações regulares regulares — não esperas pelo relatório final para perceber como está.',
         'Pratica dizer: "Preciso de X para conseguir fazer Y." — sem pedir desculpa por precisar.',
       ]},
     C:{cor:'var(--c)',cl:'var(--c-light)',label:'Conformidade / Cumprimento',
       desafiosPrincipais:[
         {t:'Paralisia por análise',d:'Espera pela informação perfeita. Entretanto, a janela de oportunidade fecha.'},
-        {t:'Perfeccionismo que bloqueia a equipa',d:'O standard elevado do C pode tornar-se um obstáculo ao progresso colectivo.'},
+        {t:'Perfeccionismo que bloqueia a equipa',d:'O padrão elevado do C pode tornar-se um obstáculo ao progresso colectivo.'},
         {t:'Comunicação fria sob pressão',d:'Foca nos factos e ignora a dimensão emocional. Pode parecer insensível.'},
         {t:'Isolamento em momentos de stress',d:'Quando há pressão, o C fecha-se. A equipa não sabe como está ou o que precisa.'},
       ],
@@ -1671,7 +1685,7 @@ function renderDesafiosDash(){
       ],
       delegacao:[
         'Define antecipadamente o critério de qualidade mínima — e confia que a pessoa o vai cumprir.',
-        'Usa checklists partilhadas em vez de verificação directa — mantém o controlo sem microgerir.',
+        'Usa listas de verificação partilhadas em vez de verificação directa — mantém o controlo sem microgerir.',
         'Aceita que os outros têm métodos diferentes — e podem chegar ao mesmo resultado.',
         'Pratica dizer: "Bom trabalho" sem acrescentar "mas..." — o reconhecimento puro também existe.',
       ]},
