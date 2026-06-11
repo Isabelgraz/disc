@@ -7,6 +7,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -1269,14 +1270,19 @@ function buildResultHTML(result,info,scores,total,isAval,autoScores){
 function loadTeamMembers(){
   const equipa=document.getElementById('av-equipa').value;
   if(!equipa){document.getElementById('member-select-wrap').style.display='none';return;}
-  const members=getResults().filter(r=>r.equipa===equipa);
+  // Mostrar colaboradores da equipa excluindo líderes
+  const cols=getColabs().filter(c=>!c.isLider&&(!c.equipa||c.equipa===equipa));
+  const results=getResults().filter(r=>r.equipa===equipa&&!r.isLider);
+  const membrosComTeste=results.map(r=>({id:r.id,nome:r.nome,funcao:r.funcao||''}));
+  const membrosSemTeste=cols.filter(c=>!results.find(r=>r.nome.toLowerCase()===c.nome.toLowerCase())).map(c=>({id:'col_'+c.nome,nome:c.nome,funcao:c.funcao||'',semTeste:true}));
+  const members=[...membrosComTeste,...membrosSemTeste];
   const sel=document.getElementById('av-membro');
   if(!members.length){
     document.getElementById('member-select-wrap').style.display='block';
-    sel.innerHTML='<option>Ainda não existem autoavaliações para esta equipa</option>';return;
+    sel.innerHTML='<option>Ainda não existem colaboradores nesta equipa</option>';return;
   }
   sel.innerHTML='<option value="">— Selecciona o membro —</option>'+
-    members.map(m=>`<option value="${m.id}">${m.nome}${m.funcao?' ('+m.funcao+')':''}</option>`).join('');
+    members.map(m=>`<option value="${m.id}">${m.nome}${m.funcao?' ('+m.funcao+')':''}${m.semTeste?' (sem teste)':''}</option>`).join('');
   document.getElementById('member-select-wrap').style.display='block';
 }
 function startAval(){
@@ -1284,8 +1290,12 @@ function startAval(){
   const equipa=document.getElementById('av-equipa').value;
   const membroId=document.getElementById('av-membro').value;
   if(!chefeNome||!equipa||!membroId){alert('Por favor preenche todos os campos.');return;}
-  const membro=getResults().find(r=>r.id==membroId);
-  if(!membro){alert('Membro não encontrado.');return;}
+  let membro=getResults().find(r=>r.id==membroId);
+  if(!membro){
+    const col=getColabs().find(c=>'col_'+c.nome===membroId||c.nome===membroId);
+    if(col){membro={id:membroId,nome:col.nome,funcao:col.funcao||'',empresa:col.empresa||'',scores:null,dominant:null};}
+    else{alert('Membro não encontrado.');return;}
+  }
   avInfo={chefeNome,equipa,membroId:membro.id,membroNome:membro.nome,membroFuncao:membro.funcao||'',membroEmpresa:membro.empresa||'',membroScores:membro.scores,membroDominant:membro.dominant,data:new Date().toLocaleDateString('pt-PT'),id:Date.now().toString(36)};
   avAnswers={};avCurGrp=0;
   document.getElementById('av-select').style.display='none';
@@ -1980,7 +1990,7 @@ function gerarWordFinal(){
 // ═══════════════════════════════════════════════
 function gerarWord(r,av,plano){
   var info=DI[r.dominant];
-  var nomeR=r.nome||'Este colaborador';
+  var nomeR=(r.nome&&r.nome.trim())?r.nome.trim():(r.genero==='F'?'Esta colaboradora':'Este colaborador');
   var narrativa=adaptarGenero(getNarrativa(r.dominant,nomeR), r.genero, nomeR);
   var narr360=av?gerar360narrativa(r,av):'';
   var total=r.total||Object.values(r.scores).reduce(function(a,b){return a+b;},0)||1;
@@ -2187,7 +2197,7 @@ function gerarWord(r,av,plano){
     var ai=DI[av.dominant];var conv=r.dominant===av.dominant;
     var isMediaColabs=av&&av.tipo==='media_colabs';
   H+='<div class="sb"></div><h2>'+(isMediaColabs?'Avalia\u00e7\u00e3o pelos Colaboradores':'Avalia\u00e7\u00e3o 360\u00ba')+'</h2>';
-    H+='<div class="bx"><p>'+(isMediaColabs?'<b>'+av.chefeNome+'</b> avaliaram o comportamento de '+nomeR+'. Os valores representam a m\u00e9dia das avalia\u00e7\u00f5es recebidas. \u00b7 <b>Data:</b> '+av.data:'<b>Avaliado por:</b> '+av.chefeNome)+' &nbsp;\u00b7&nbsp; <b>Data:</b> '+av.data+'</p></div>';
+    H+='<div class="bx"><p>'+(isMediaColabs?'<b>'+av.chefeNome+'</b> avaliou/avaliaram '+nomeR+'. Os valores representam a m\u00e9dia das avalia\u00e7\u00f5es recebidas. \u00b7 <b>Data:</b> '+av.data:isMediaColabs?av.chefeNome+' avaliaram':'<b>Avaliado por:</b> '+av.chefeNome)+' &nbsp;\u00b7&nbsp; <b>Data:</b> '+av.data+'</p></div>';
     H+='<h3>Compara\u00e7\u00e3o de Perfis</h3><table class="t2"><tr><td class="tl">Perfil Natural (Auto)</td><td><span style="background:'+dLhex[r.dominant]+';color:'+dHex[r.dominant]+';padding:3px 12px;border-radius:20px;font-weight:700">'+DI[r.dominant].label+' / '+DI[r.dominant].label2+'</span></td></tr><tr><td class="tl">Perspetiva da Chefia</td><td><span style="background:'+dLhex[av.dominant]+';color:'+dHex[av.dominant]+';padding:3px 12px;border-radius:20px;font-weight:700">'+ai.label+' / '+ai.label2+'</span></td></tr><tr><td class="tl">Converg\u00eancia</td><td style="background:'+(conv?'#EAFAF1':'#FDEDEC')+';color:'+(conv?'#1E8449':'#C0392B')+';font-weight:700">'+(conv?'\u2713 Convergentes':'\u26a0 Perfis distintos \u2014 poss\u00edvel adapta\u00e7\u00e3o')+'</td></tr></table>';
     H+='<h3>An\u00e1lise por Dimens\u00e3o</h3><table class="t2"><tr style="background:#EEF4FA"><th style="padding:6px 10px;text-align:left;color:#4A90B8;width:28%">Dimens\u00e3o</th><th style="padding:6px 8px;color:#4A90B8">Auto</th><th style="padding:6px 8px;color:#4A90B8">Chefia</th><th style="padding:6px 10px;color:#4A90B8;text-align:center">Var.</th></tr>';
     ['D','I','S','C'].forEach(function(d){var aP=pc(r.scores[d]||0,total),cP=pc(av.scores[d]||0,at),diff=cP-aP,cd=Math.abs(diff)>=15?'#C0392B':'#1E8449';H+='<tr><td style="background:'+dLhex[d]+';font-weight:700;color:'+dHex[d]+';padding:6px 10px">'+dN1[d]+'<br><small style="font-weight:400;color:#6B7280">'+dN2[d]+'</small></td><td style="padding:6px 8px"><b style="color:'+dHex[d]+'">'+aP+'%</b><div class="bw" style="margin-top:3px"><div class="bf" style="width:'+aP+'%;background:'+dHex[d]+'"></div></div></td><td style="padding:6px 8px"><b style="color:'+dHex[d]+'">'+cP+'%</b><div class="bw" style="margin-top:3px"><div class="bf" style="width:'+cP+'%;background:'+dHex[d]+'99"></div></div></td><td style="padding:6px 10px;text-align:center;font-weight:700;color:'+cd+'">'+(diff>0?'+':'')+diff+'%</td></tr>';});
@@ -3290,9 +3300,9 @@ function imprimirCaso(){
 function renderAvalLider(equipaColab){
   const cols=getColabs();
   const equipa=equipaColab||_equipa||'';
-  let lideres=cols.filter(c=>c.isLider||(c.funcao&&/l[ií]der|chefe|diretor|gestor|manager|coordenador/i.test(c.funcao)));
+  // Mostrar APENAS colaboradores marcados como Líder no Admin
+  let lideres=cols.filter(c=>c.isLider);
   if(equipa&&lideres.length>1) lideres=lideres.filter(c=>!c.equipa||c.equipa===equipa);
-  if(!lideres.length) lideres=cols.filter(c=>c.isLider);
   const el=document.getElementById('al-lista');
   if(!el)return;
 
