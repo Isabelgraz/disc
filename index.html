@@ -2435,6 +2435,27 @@ function desligarFirebase(){
   alert('Firebase desligado. Os dados continuam guardados localmente.');
 }
 
+async function sincronizarParaFirebase(){
+  if(!window._fbReady){alert('Firebase não está ligado. Aguarda alguns segundos e tenta novamente.');return;}
+  var results=[];var avals=[];var cols=[];var pins=null;
+  try{ results=JSON.parse(localStorage.getItem('ig_results')||'[]'); }catch{}
+  try{ avals=JSON.parse(localStorage.getItem('ig_avals')||'[]'); }catch{}
+  try{ cols=JSON.parse(localStorage.getItem('ig_colabs')||'[]'); }catch{}
+  try{ pins=JSON.parse(localStorage.getItem('ig_pins')||'null'); }catch{}
+  var count=0;
+  for(var r of results){
+    try{ await window.fbSaveResult(r); count++; }catch(e){}
+  }
+  for(var a of avals){
+    if(!a.id) a.id='av_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    try{ await window.fbSaveAval(a); count++; }catch(e){}
+  }
+  if(cols.length) try{ await window.fbSaveColabs(cols); }catch(e){}
+  if(pins) try{ await window.fbSavePins(pins); }catch(e){}
+  alert('✅ Sincronização concluída! '+count+' registos enviados para o Firebase.');
+  updateStats();
+}
+
 async function sincronizarDoFirebase(){
   if(!window._fbReady){alert('Firebase não está ligado.');return;}
   var results=await window.fbGetResults();
@@ -2633,6 +2654,27 @@ function desligarFirebase(){
   var st=document.getElementById('fb-status');
   if(st){st.textContent='⬤ Desligado';st.style.background='';st.style.color='';}
   alert('Firebase desligado. Os dados continuam guardados localmente.');
+}
+
+async function sincronizarParaFirebase(){
+  if(!window._fbReady){alert('Firebase não está ligado. Aguarda alguns segundos e tenta novamente.');return;}
+  var results=[];var avals=[];var cols=[];var pins=null;
+  try{ results=JSON.parse(localStorage.getItem('ig_results')||'[]'); }catch{}
+  try{ avals=JSON.parse(localStorage.getItem('ig_avals')||'[]'); }catch{}
+  try{ cols=JSON.parse(localStorage.getItem('ig_colabs')||'[]'); }catch{}
+  try{ pins=JSON.parse(localStorage.getItem('ig_pins')||'null'); }catch{}
+  var count=0;
+  for(var r of results){
+    try{ await window.fbSaveResult(r); count++; }catch(e){}
+  }
+  for(var a of avals){
+    if(!a.id) a.id='av_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    try{ await window.fbSaveAval(a); count++; }catch(e){}
+  }
+  if(cols.length) try{ await window.fbSaveColabs(cols); }catch(e){}
+  if(pins) try{ await window.fbSavePins(pins); }catch(e){}
+  alert('✅ Sincronização concluída! '+count+' registos enviados para o Firebase.');
+  updateStats();
 }
 
 async function sincronizarDoFirebase(){
@@ -3539,6 +3581,7 @@ function renderAdmin(){
           <button class="btn btn-primary btn-sm" onclick="ligarFirebase()">🔥 Ligar</button>
           <button class="btn btn-outline btn-sm" onclick="desligarFirebase()">✕ Desligar</button>
           <button class="btn btn-outline btn-sm" onclick="sincronizarDoFirebase()">🔄 Importar dados do Firebase</button>
+          <button class="btn btn-primary btn-sm" onclick="sincronizarParaFirebase()">⬆ Enviar dados locais para Firebase</button>
         </div>
         <div style="margin-top:.6rem;font-size:11px;color:var(--muted);line-height:1.6">
           💡 Cria o projeto em <a href="https://console.firebase.google.com" target="_blank" style="color:var(--brand)">console.firebase.google.com</a> → Adiciona uma app Web → copia a API Key e o Project ID
