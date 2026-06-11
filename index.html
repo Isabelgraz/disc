@@ -4,6 +4,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -556,7 +557,16 @@ autoavaliação e avaliação de chefia. Descobre o teu perfil, compara com a
         </div>
       </div>
       <div class="form-row">
-        <div class="fg"><label>Função / cargo</label><input id="p-funcao" placeholder="Ex: Técnico comercial"></div>
+        <div class="fg"><label>Função / cargo</label><input id="p-funcao" placeholder="Ex: Técnica comercial"></div>
+        <div class="fg"><label>Género *</label>
+          <select id="p-genero">
+            <option value="">— Selecciona —</option>
+            <option value="F">Feminino</option>
+            <option value="M">Masculino</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
         <div class="fg"><label>Empresa</label><input id="p-empresa" placeholder="Ex: Empresa XYZ"></div>
       </div>
     </div>
@@ -797,9 +807,36 @@ function saveAval(r){
   }
   tentarGuardar(1);
 }
+function adaptarGenero(texto, genero, nome){
+  // Adapta o texto ao género da pessoa
+  if(!genero||genero==='M') return texto; // masculino é o padrão
+  // Substituições femininas
+  return texto
+    .replace(/Este colaborador/g, 'Esta colaboradora')
+    .replace(/Este profissional/g, 'Esta profissional')
+    .replace(/Ele/g, 'Ela')
+    .replace(/ele/g, 'ela')
+    .replace(/proactivo/g, 'proactiva')
+    .replace(/organizado/g, 'organizada')
+    .replace(/directo/g, 'directa')
+    .replace(/metódico/g, 'metódica')
+    .replace(/rigoroso/g, 'rigorosa')
+    .replace(/fiel/g, 'fiel')
+    .replace(/consistente/g, 'consistente')
+    .replace(/responsável/g, 'responsável')
+    .replace(/empático/g, 'empática')
+    .replace(/seu/g, 'sua')
+    .replace(/Seu/g, 'Sua')
+    .replace(/do colaborador/g, 'da colaboradora')
+    .replace(/ao colaborador/g, 'à colaboradora')
+    .replace(/um colaborador/g, 'uma colaboradora')
+    .replace(/o colaborador/g, 'a colaboradora');
+}
+
 function getNarrativa(perfil, nome){
   const tpl=DI[perfil]&&DI[perfil].narrativa?DI[perfil].narrativa:'';
-  return tpl.replace(/\{nome\}/g, nome||'Esta pessoa');
+  const n=nome&&nome.trim()?nome.trim():'Esta pessoa';
+  return tpl.replace(/\{nome\}/g, n);
 }
 
 function calcScores(ans){const s={D:0,I:0,S:0,C:0};QS.forEach((q,i)=>{if(ans[i]!==undefined)s[q.opts[ans[i]].d]++;});return s;}
@@ -1118,7 +1155,8 @@ function startTest(){
   const nome=document.getElementById('p-nome').value.trim();
   const equipa=document.getElementById('p-equipa').value;
   if(!nome||!equipa){alert('Por favor preenche o nome e selecciona a equipa.');return;}
-  pInfo={nome,equipa,funcao:document.getElementById('p-funcao').value.trim(),empresa:document.getElementById('p-empresa').value.trim(),data:new Date().toLocaleDateString('pt-PT'),id:Date.now().toString(36)};
+  const genero=document.getElementById('p-genero')?document.getElementById('p-genero').value:'';
+  pInfo={nome,equipa,funcao:document.getElementById('p-funcao').value.trim(),empresa:document.getElementById('p-empresa').value.trim(),genero,data:new Date().toLocaleDateString('pt-PT'),id:Date.now().toString(36)};
   answers={};curGrp=0;
   document.getElementById('st-info').style.display='none';
   document.getElementById('st-test').style.display='block';
@@ -1814,7 +1852,10 @@ function abrirRelatorioLider(liderResultId){
   const avals=getAvals();
   // Recolher todas as avaliações do líder pelos colaboradores
   const avLider=avals.filter(function(a){
-    return a.tipo==='aval_lider'&&(a.liderId===liderResultId||a.liderNome===r.nome);
+    if(a.tipo!=='aval_lider') return false;
+    var nomeR=(r.nome||'').trim().toLowerCase();
+    var nomeLider=(a.liderNome||'').trim().toLowerCase();
+    return a.liderId===liderResultId||a.liderId===r.id||nomeLider===nomeR||nomeLider.includes(nomeR)||nomeR.includes(nomeLider);
   });
   // Calcular scores médios dos colaboradores
   var mediaScores=null;
@@ -1934,7 +1975,7 @@ function gerarWordFinal(){
 function gerarWord(r,av,plano){
   var info=DI[r.dominant];
   var nomeR=r.nome||'Este colaborador';
-  var narrativa=getNarrativa(r.dominant,nomeR);
+  var narrativa=adaptarGenero(getNarrativa(r.dominant,nomeR), r.genero, nomeR);
   var narr360=av?gerar360narrativa(r,av):'';
   var total=r.total||Object.values(r.scores).reduce(function(a,b){return a+b;},0)||1;
   var at=av?av.total||Object.values(av.scores).reduce(function(a,b){return a+b;},0)||1:1;
@@ -2083,7 +2124,7 @@ function gerarWord(r,av,plano){
   H+='<table class="t2" style="margin-bottom:14px">';
   H+='<tr><td class="tl" style="width:38%">Esfor\u00e7o Consciente</td><td>Representa uma modifica\u00e7\u00e3o deliberada do estilo natural para alcan\u00e7ar sucesso ou aceita\u00e7\u00e3o no contexto profissional.</td></tr>';
   H+='<tr><td class="tl">Desgaste Energ\u00e9tico</td><td>Uma diferen\u00e7a acentuada entre o Perfil Natural e o Adaptado consome muita energia mental e f\u00edsica ao longo do tempo.</td></tr>';
-  H+='<tr><td class="tl">Risco de Burnout</td><td>Manter um perfil altamente adaptado por muito tempo gera stress, cans\u00e1o extremo e insatisfa\u00e7\u00e3o profissional.</td></tr>';
+  H+='<tr><td class="tl">Risco de Esgotamento</td><td>Manter um perfil altamente adaptado por muito tempo gera stress, cans\u00e1o extremo e insatisfa\u00e7\u00e3o profissional.</td></tr>';
   H+='<tr><td class="tl">Foco Situacional</td><td>Este perfil pode mudar rapidamente se mudar de emprego, de chefia, de fun\u00e7\u00f5es ou de contexto de vida.</td></tr>';
   H+='</table>';
   if(av){
@@ -2153,7 +2194,7 @@ function gerarWord(r,av,plano){
   H+='<div class="bx"><p>Recomenda\u00e7\u00f5es pr\u00e1ticas de desenvolvimento com base no perfil de '+nomeR+'.</p></div>';
   pl.forEach(function(pt,i){H+='<div class="pi"><div class="pn">'+(i+1)+'</div><div class="pt">'+pt+'</div></div>';});
   H+='<h3 style="margin-top:16px">Sete Dicas para o Plano de A\u00e7\u00e3o</h3>';
-  [{n:1,t:'Recorde os benef\u00edcios.',d:'Identifique o que ganha ao alcan\u00e7ar cada meta: efic\u00e1cia, melhor comunica\u00e7\u00e3o, reconhecimento.'},{n:2,t:'Disponibilize tempo.',d:'Quinze minutos di\u00e1rios criam mudan\u00e7as consistentes ao longo do ano.'},{n:3,t:'Uma coisa de cada vez.',d:'Divida cada objetivo em pequenas tarefas e conclua antes de avan\u00e7ar.'},{n:4,t:'Pratique regularmente.',d:'Um pouco todos os dias vale mais do que uma sess\u00e3o intensa por semana.'},{n:5,t:'A persevera\u00e7\u00e3o conquista.',d:'Foque-se no plano e relembre os motivos que o levaram a come\u00e7ar.'},{n:6,t:'Responda bem aos erros.',d:'Aceite a responsabilidade, aprenda e avan\u00e7e. Ningu\u00e9m se desenvolve sem errar.'},{n:7,t:'Evoque mem\u00f3rias de \u00eaxito.',d:'Recorde um sucesso passado quando se sentir pressionado.'}].forEach(function(d){H+='<div class="di"><span class="dn">'+d.n+'. '+d.t+'</span> '+d.d+'</div>';});
+  [{n:1,t:'Recorde os benef\u00edcios.',d:'Identifique o que ganha ao alcan\u00e7ar cada meta: efic\u00e1cia, melhor comunica\u00e7\u00e3o, reconhecimento.'},{n:2,t:'Disponibilize tempo.',d:'Quinze minutos di\u00e1rios criam mudan\u00e7as consistentes ao longo do ano.'},{n:3,t:'Uma coisa de cada vez.',d:'Divida cada objetivo em pequenas tarefas e conclua antes de avan\u00e7ar.'},{n:4,t:'Pratique regularmente.',d:'Um pouco todos os dias vale mais do que uma sess\u00e3o intensa por semana.'},{n:5,t:'A perseveran\u00e7a conquista.',d:'Foque-se no plano e relembre os motivos que o levaram a come\u00e7ar.'},{n:6,t:'Responda bem aos erros.',d:'Aceite a responsabilidade, aprenda e avan\u00e7e. Ningu\u00e9m se desenvolve sem errar.'},{n:7,t:'Evoque mem\u00f3rias de \u00eaxito.',d:'Recorde um sucesso passado quando se sentir pressionado.'}].forEach(function(d){H+='<div class="di"><span class="dn">'+d.n+'. '+d.t+'</span> '+d.d+'</div>';});
   H+='<div style="background:#F5F6F8;border:1px solid #E8EAED;border-radius:4px;padding:12px 16px;margin-top:24px"><p style="font-size:10pt;color:#6B7280;font-style:italic">Este relat\u00f3rio est\u00e1 relacionado unicamente com caracter\u00edsticas do comportamento. O \u00eaxito em qualquer cargo depender\u00e1 de a pessoa ter a intelig\u00eancia, a capacidade e a experi\u00eancia adequadas.</p></div>';
   H+='<div class="rod"><span>Isabel Grazina \u00b7 Desenvolvimento Profissional</span><span>Relat\u00f3rio Confidencial</span></div>';
   H+='</div>\n';
