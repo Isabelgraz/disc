@@ -3,6 +3,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -397,9 +398,7 @@ window.addEventListener('load', function(){
   }
   tentarLigar(1);
   setInterval(function(){
-    var cfg=null;
-    try{ cfg=JSON.parse(localStorage.getItem('ig_fb_config')||'null'); }catch{}
-    if(cfg&&cfg.apiKey&&!window._fbReady){ try{ initFirebase(); }catch(e){} }
+    if(!window._fbReady){ try{ initFirebase(); }catch(e){} }
   }, 10000);
 });
 </script>
@@ -1633,7 +1632,7 @@ function renderDesafiosDash(){
         'Define o RESULTADO esperado — não o processo. Deixa a pessoa escolher como chegar lá.',
         'Marca um ponto de controlo a meio do prazo em vez de verificar diariamente.',
         'Aceita que "suficientemente bom" é melhor do que "perfeito mas feito por ti".',
-        'Diz: "Confio em ti para decidir X. Só me avisa se precisares de mim."',
+        'Diz: "Confio em ti para decidir X. Avisa-me apenas se precisares de ajuda."',
       ]},
     I:{cor:'var(--i)',cl:'var(--i-light)',label:'Influência / Interação',
       desafiosPrincipais:[
@@ -1780,7 +1779,7 @@ function renderRelatoriosDash(){
   var secC=document.createElement('div');secC.className='card';secC.style.marginBottom='1rem';
   var headerC=document.createElement('div');headerC.style.cssText='display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem';
   var titC=document.createElement('div');titC.innerHTML='<div style="font-size:1.1rem;font-weight:700;color:var(--brand)">Relatórios Word</div><p style="font-size:13px;color:var(--muted);margin-top:.2rem">Perfil completo com narrativa, análise 360º e plano de acção.</p>';
-  var btnExp=document.createElement('button');btnExp.className='btn btn-outline btn-sm';btnExp.textContent='📦 Exportar todos';btnExp.onclick=exportarTodosWord;
+  var btnExp=document.createElement('button');btnExp.className='btn btn-outline btn-sm';btnExp.textContent='📦 Exportar todos';btnExp.id='btn-export-massa';btnExp.onclick=function(e){exportarTodosWord(e);};
   headerC.appendChild(titC);headerC.appendChild(btnExp);
   var gridC=document.createElement('div');gridC.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem';
   (colabs.length?colabs:results).forEach(function(r){
@@ -2177,18 +2176,18 @@ function gerarWord(r,av,plano){
 // ═══════════════════════════════════════════════
 // EXPORTAÇÃO EM MASSA (ZIP)
 // ═══════════════════════════════════════════════
-async function exportarTodosWord(){
+async function exportarTodosWord(evt){
   if(typeof docx==='undefined'||typeof JSZip==='undefined'){
     alert('As bibliotecas ainda estão a carregar. Aguarda 2 segundos e tenta novamente.');return;
   }
   const results=filteredResults();const avals=getAvals();
   if(!results.length){alert('Não existem avaliações para exportar.');return;}
-  const btn=document.getElementById('btn-export-massa');
+  const btn=document.getElementById('btn-export-massa')||(evt&&evt.target?evt.target:null);
   const prog=document.getElementById('export-progress');
   const bar=document.getElementById('export-bar');
   const msg=document.getElementById('export-msg');
-  btn.disabled=true;btn.textContent='A gerar...';
-  prog.style.display='block';
+  if(btn){btn.disabled=true;btn.textContent='A gerar...';}
+  if(prog)prog.style.display='block';
   const zip=new JSZip();
   for(let i=0;i<results.length;i++){
     const r=results[i];
@@ -2213,7 +2212,7 @@ async function exportarTodosWord(){
     setTimeout(()=>URL.revokeObjectURL(url),2000);
   }catch(e){alert('Erro ao criar ZIP: '+e.message);}
   prog.style.display='none';
-  btn.disabled=false;btn.textContent='📦 Exportar todos (ZIP de relatórios)';
+  if(btn){btn.disabled=false;btn.textContent='📦 Exportar todos';}
 }
 
 // Versão que devolve Promise<Blob> em vez de fazer download
