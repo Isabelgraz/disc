@@ -9,6 +9,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -260,7 +261,7 @@ function initFirebase(){
     window._fbReady=true;
     console.log('[Firebase] Ligado a:', cfg.projectId);
     // Sincronizar dados do localStorage para Firebase ao ligar
-    sincronizarLocalParaFB();
+    // sincronizarLocalParaFB(); // Desactivado para evitar loop de dados
     // Escutar novos resultados em tempo real (para o Admin)
     escutarResultados();
     escutarAvals();
@@ -330,11 +331,9 @@ function escutarResultados(){
   if(!window._fbReady) return;
   onSnapshot(collection(window._fbDB,'resultados'), function(snap){
     var dados=snap.docs.map(function(d){return d.data();});
-    if(dados.length>0){
-      localStorage.setItem('ig_results', JSON.stringify(dados));
-      if(typeof updateStats==='function') updateStats();
-      console.log('[Firebase] '+dados.length+' resultados sincronizados');
-    }
+    // Só actualiza localStorage — NÃO chama saveResult para evitar loop
+    localStorage.setItem('ig_results', JSON.stringify(dados));
+    if(typeof updateStats==='function') updateStats();
   });
 }
 
@@ -363,10 +362,9 @@ function escutarAvals(){
   if(!window._fbReady) return;
   onSnapshot(collection(window._fbDB,'avaliacoes'), function(snap){
     var dados=snap.docs.map(function(d){return d.data();});
-    if(dados.length>0){
-      localStorage.setItem('ig_avals', JSON.stringify(dados));
-      if(typeof updateStats==='function') updateStats();
-    }
+    // Só actualiza localStorage — NÃO chama saveAval para evitar loop
+    localStorage.setItem('ig_avals', JSON.stringify(dados));
+    if(typeof updateStats==='function') updateStats();
   });
 }
 
@@ -788,32 +786,16 @@ function saveResult(r){
   const i=a.findIndex(x=>x.id===r.id);
   if(i>=0)a[i]=r;else a.push(r);
   localStorage.setItem('ig_results',JSON.stringify(a));
-  // Sincronizar com Firebase — com retry se não estiver pronto
-  function tentarGuardar(tentativa){
-    if(tentativa>10) return;
-    if(window._fbReady&&window.fbSaveResult){
-      window.fbSaveResult(r);
-    } else {
-      setTimeout(function(){ tentarGuardar(tentativa+1); }, 1000);
-    }
-  }
-  tentarGuardar(1);
+  // Sincronizar com Firebase (sem retry para evitar loops)
+  if(window._fbReady&&window.fbSaveResult) window.fbSaveResult(r);
 }
 function saveAval(r){
   const a=getAvals();
   if(!r.id) r.id='av_'+Date.now()+'_'+Math.random().toString(36).slice(2);
   a.push(r);
   localStorage.setItem('ig_avals',JSON.stringify(a));
-  // Sincronizar com Firebase — com retry se não estiver pronto
-  function tentarGuardar(tentativa){
-    if(tentativa>10) return;
-    if(window._fbReady&&window.fbSaveAval){
-      window.fbSaveAval(r);
-    } else {
-      setTimeout(function(){ tentarGuardar(tentativa+1); }, 1000);
-    }
-  }
-  tentarGuardar(1);
+  // Sincronizar com Firebase (sem retry para evitar loops)
+  if(window._fbReady&&window.fbSaveAval) window.fbSaveAval(r);
 }
 function adaptarGenero(texto, genero, nome){
   // Adapta o texto ao género da pessoa
@@ -1993,6 +1975,7 @@ function gerarWord(r,av,plano){
   var info=DI[r.dominant];
   var nomeR=(r.nome&&r.nome.trim())?r.nome.trim():(r.genero==='F'?'Esta colaboradora':'Este colaborador');
   var narrativa=adaptarGenero(getNarrativa(r.dominant,nomeR), r.genero, nomeR);
+  function sn(txt){ return txt?String(txt).replace(/\{nome\}/g,nomeR):txt; }
   // Substituir {nome} em todos os campos do perfil
   function sn(txt){ return txt?txt.replace(/\{nome\}/g,nomeR):txt; }
   var infoS={
