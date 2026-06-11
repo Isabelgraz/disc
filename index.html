@@ -8,6 +8,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -1992,6 +1993,15 @@ function gerarWord(r,av,plano){
   var info=DI[r.dominant];
   var nomeR=(r.nome&&r.nome.trim())?r.nome.trim():(r.genero==='F'?'Esta colaboradora':'Este colaborador');
   var narrativa=adaptarGenero(getNarrativa(r.dominant,nomeR), r.genero, nomeR);
+  // Substituir {nome} em todos os campos do perfil
+  function sn(txt){ return txt?txt.replace(/\{nome\}/g,nomeR):txt; }
+  var infoS={
+    lideranca: sn(infoS.lideranca),
+    comunicacao: sn(infoS.comunicacao),
+    stress: sn(infoS.stress),
+    conflito: sn(infoS.conflito),
+    necessidade: sn(infoS.necessidade),
+  };
   var narr360=av?gerar360narrativa(r,av):'';
   var total=r.total||Object.values(r.scores).reduce(function(a,b){return a+b;},0)||1;
   var at=av?av.total||Object.values(av.scores).reduce(function(a,b){return a+b;},0)||1:1;
@@ -2172,13 +2182,13 @@ function gerarWord(r,av,plano){
     // Estilo de Gestão
   H+='<div class="sb"></div><h2>Estilo de Gest\u00e3o</h2>';
   H+='<div class="bx"><p>Descreve a forma como '+nomeR+' reage perante a responsabilidade de gerir os outros.</p></div>';
-  H+='<h3>Lideran\u00e7a</h3><p>'+info.lideranca+'</p>';
-  H+='<h3>Comunica\u00e7\u00e3o</h3><p>'+info.comunicacao+'</p>';
+  H+='<h3>Lideran\u00e7a</h3><p>'+infoS.lideranca+'</p>';
+  H+='<h3>Comunica\u00e7\u00e3o</h3><p>'+infoS.comunicacao+'</p>';
   H+='<h3>Tomada de Decis\u00f5es</h3><p>'+nomeR+' tende a tomar decis\u00f5es de forma aut\u00f3noma, avaliando a informa\u00e7\u00e3o dispon\u00edvel com rapidez. Pode tomar decis\u00f5es impopulares quando as considera necess\u00e1rias para alcan\u00e7ar os objetivos.</p>';
 
   // Stress & Conflito
   H+='<h2>Sinais de Stress e Gest\u00e3o de Conflito</h2>';
-  H+='<table class="t2"><tr><td class="tl">Comportamento sob Press\u00e3o</td><td>'+info.stress+'</td></tr><tr><td class="tl">Gest\u00e3o de Conflito</td><td>'+info.conflito+'</td></tr><tr><td class="tl">O que Necessita</td><td>'+info.necessidade+'</td></tr><tr><td class="tl">M\u00e9todo de Controlo</td><td>Aceita\u00e7\u00e3o \u2014 prefere gerir pelo consenso e pela harmonia</td></tr><tr><td class="tl">Receio Predominante</td><td>Perder a seguran\u00e7a e a estabilidade no ambiente de trabalho</td></tr></table>';
+  H+='<table class="t2"><tr><td class="tl">Comportamento sob Press\u00e3o</td><td>'+infoS.stress+'</td></tr><tr><td class="tl">Gest\u00e3o de Conflito</td><td>'+infoS.conflito+'</td></tr><tr><td class="tl">O que Necessita</td><td>'+infoS.necessidade+'</td></tr><tr><td class="tl">M\u00e9todo de Controlo</td><td>Aceita\u00e7\u00e3o \u2014 prefere gerir pelo consenso e pela harmonia</td></tr><tr><td class="tl">Receio Predominante</td><td>Perder a seguran\u00e7a e a estabilidade no ambiente de trabalho</td></tr></table>';
 
   // Como Liderar
   H+='<div class="sb"></div><h2>Como Liderar Eficazmente '+nomeR+'</h2>';
