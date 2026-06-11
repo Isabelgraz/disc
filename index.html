@@ -6,6 +6,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -387,8 +388,12 @@ async function sincronizarLocalParaFB(){
   console.log('[Firebase] Sincronização inicial: '+results.length+' resultados, '+avals.length+' avaliações');
 }
 
-// Expor initFirebase globalmente
+// Expor funções Firebase globalmente
 window.initFirebase=initFirebase;
+window._fbGetDocs=getDocs;
+window._fbDeleteDoc=deleteDoc;
+window._fbCollection=collection;
+window._fbDoc=doc;
 
 // Ligar automaticamente sempre — credenciais fixas no código
 window.addEventListener('load', function(){
@@ -2495,20 +2500,25 @@ async function limparTodoFirebase(){
   if(!confirm('Tens a certeza que queres apagar TODOS os dados do Firebase?\nEsta acção não pode ser revertida.')) return;
   if(!confirm('Confirmação final: apagar todos os resultados e avaliações do Firebase?')) return;
   try{
+    var fbGetDocs=window._fbGetDocs;
+    var fbDeleteDoc=window._fbDeleteDoc;
+    var fbCollection=window._fbCollection;
+    var fbDoc=window._fbDoc;
+    var db=window._fbDB;
     // Apagar todos os resultados
-    var snapR=await getDocs(collection(window._fbDB,'resultados'));
-    var promessasR=snapR.docs.map(function(d){return deleteDoc(doc(window._fbDB,'resultados',d.id));});
+    var snapR=await fbGetDocs(fbCollection(db,'resultados'));
+    var promessasR=snapR.docs.map(function(d){return fbDeleteDoc(fbDoc(db,'resultados',d.id));});
     await Promise.all(promessasR);
     // Apagar todas as avaliações
-    var snapA=await getDocs(collection(window._fbDB,'avaliacoes'));
-    var promessasA=snapA.docs.map(function(d){return deleteDoc(doc(window._fbDB,'avaliacoes',d.id));});
+    var snapA=await fbGetDocs(fbCollection(db,'avaliacoes'));
+    var promessasA=snapA.docs.map(function(d){return fbDeleteDoc(fbDoc(db,'avaliacoes',d.id));});
     await Promise.all(promessasA);
     // Limpar também localStorage
     localStorage.removeItem('ig_results');
     localStorage.removeItem('ig_avals');
     updateStats();
     renderAdmin();
-    alert('✅ Firebase limpo com sucesso! '+snapR.docs.length+' resultados e '+snapA.docs.length+' avaliações apagados.');
+    alert('✅ Firebase limpo! '+snapR.docs.length+' resultados e '+snapA.docs.length+' avaliações apagados.');
   }catch(e){
     alert('Erro ao limpar Firebase: '+e.message);
   }
@@ -2740,20 +2750,25 @@ async function limparTodoFirebase(){
   if(!confirm('Tens a certeza que queres apagar TODOS os dados do Firebase?\nEsta acção não pode ser revertida.')) return;
   if(!confirm('Confirmação final: apagar todos os resultados e avaliações do Firebase?')) return;
   try{
+    var fbGetDocs=window._fbGetDocs;
+    var fbDeleteDoc=window._fbDeleteDoc;
+    var fbCollection=window._fbCollection;
+    var fbDoc=window._fbDoc;
+    var db=window._fbDB;
     // Apagar todos os resultados
-    var snapR=await getDocs(collection(window._fbDB,'resultados'));
-    var promessasR=snapR.docs.map(function(d){return deleteDoc(doc(window._fbDB,'resultados',d.id));});
+    var snapR=await fbGetDocs(fbCollection(db,'resultados'));
+    var promessasR=snapR.docs.map(function(d){return fbDeleteDoc(fbDoc(db,'resultados',d.id));});
     await Promise.all(promessasR);
     // Apagar todas as avaliações
-    var snapA=await getDocs(collection(window._fbDB,'avaliacoes'));
-    var promessasA=snapA.docs.map(function(d){return deleteDoc(doc(window._fbDB,'avaliacoes',d.id));});
+    var snapA=await fbGetDocs(fbCollection(db,'avaliacoes'));
+    var promessasA=snapA.docs.map(function(d){return fbDeleteDoc(fbDoc(db,'avaliacoes',d.id));});
     await Promise.all(promessasA);
     // Limpar também localStorage
     localStorage.removeItem('ig_results');
     localStorage.removeItem('ig_avals');
     updateStats();
     renderAdmin();
-    alert('✅ Firebase limpo com sucesso! '+snapR.docs.length+' resultados e '+snapA.docs.length+' avaliações apagados.');
+    alert('✅ Firebase limpo! '+snapR.docs.length+' resultados e '+snapA.docs.length+' avaliações apagados.');
   }catch(e){
     alert('Erro ao limpar Firebase: '+e.message);
   }
