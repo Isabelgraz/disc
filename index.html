@@ -5,6 +5,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -228,7 +229,7 @@ textarea{resize:vertical;line-height:1.5;}
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, addDoc, getDocs, doc, setDoc, onSnapshot, query, orderBy }
+import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, onSnapshot, query, orderBy }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 // ── Firebase init ──────────────────────────────────────────
@@ -2489,6 +2490,30 @@ function desligarFirebase(){
   alert('Firebase desligado. Os dados continuam guardados localmente.');
 }
 
+async function limparTodoFirebase(){
+  if(!window._fbReady){alert('Firebase não está ligado.');return;}
+  if(!confirm('Tens a certeza que queres apagar TODOS os dados do Firebase?\nEsta acção não pode ser revertida.')) return;
+  if(!confirm('Confirmação final: apagar todos os resultados e avaliações do Firebase?')) return;
+  try{
+    // Apagar todos os resultados
+    var snapR=await getDocs(collection(window._fbDB,'resultados'));
+    var promessasR=snapR.docs.map(function(d){return deleteDoc(doc(window._fbDB,'resultados',d.id));});
+    await Promise.all(promessasR);
+    // Apagar todas as avaliações
+    var snapA=await getDocs(collection(window._fbDB,'avaliacoes'));
+    var promessasA=snapA.docs.map(function(d){return deleteDoc(doc(window._fbDB,'avaliacoes',d.id));});
+    await Promise.all(promessasA);
+    // Limpar também localStorage
+    localStorage.removeItem('ig_results');
+    localStorage.removeItem('ig_avals');
+    updateStats();
+    renderAdmin();
+    alert('✅ Firebase limpo com sucesso! '+snapR.docs.length+' resultados e '+snapA.docs.length+' avaliações apagados.');
+  }catch(e){
+    alert('Erro ao limpar Firebase: '+e.message);
+  }
+}
+
 async function sincronizarParaFirebase(){
   if(!window._fbReady){alert('Firebase não está ligado. Aguarda alguns segundos e tenta novamente.');return;}
   var results=[];var avals=[];var cols=[];var pins=null;
@@ -2708,6 +2733,30 @@ function desligarFirebase(){
   var st=document.getElementById('fb-status');
   if(st){st.textContent='⬤ Desligado';st.style.background='';st.style.color='';}
   alert('Firebase desligado. Os dados continuam guardados localmente.');
+}
+
+async function limparTodoFirebase(){
+  if(!window._fbReady){alert('Firebase não está ligado.');return;}
+  if(!confirm('Tens a certeza que queres apagar TODOS os dados do Firebase?\nEsta acção não pode ser revertida.')) return;
+  if(!confirm('Confirmação final: apagar todos os resultados e avaliações do Firebase?')) return;
+  try{
+    // Apagar todos os resultados
+    var snapR=await getDocs(collection(window._fbDB,'resultados'));
+    var promessasR=snapR.docs.map(function(d){return deleteDoc(doc(window._fbDB,'resultados',d.id));});
+    await Promise.all(promessasR);
+    // Apagar todas as avaliações
+    var snapA=await getDocs(collection(window._fbDB,'avaliacoes'));
+    var promessasA=snapA.docs.map(function(d){return deleteDoc(doc(window._fbDB,'avaliacoes',d.id));});
+    await Promise.all(promessasA);
+    // Limpar também localStorage
+    localStorage.removeItem('ig_results');
+    localStorage.removeItem('ig_avals');
+    updateStats();
+    renderAdmin();
+    alert('✅ Firebase limpo com sucesso! '+snapR.docs.length+' resultados e '+snapA.docs.length+' avaliações apagados.');
+  }catch(e){
+    alert('Erro ao limpar Firebase: '+e.message);
+  }
 }
 
 async function sincronizarParaFirebase(){
@@ -3463,7 +3512,8 @@ function renderAdmin(){
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
       <div><div class="section-title">Painel de administração</div><div class="section-sub" style="margin-bottom:0">Isabel Grazina — Desenvolvimento Profissional</div></div>
-      <button class="btn btn-danger btn-sm" onclick="if(confirm('Limpar todos os resultados?')){localStorage.removeItem('ig_results');localStorage.removeItem('ig_avals');renderAdmin();updateStats();}">Limpar resultados</button>
+      <button class="btn btn-danger btn-sm" onclick="if(confirm('Limpar todos os resultados?')){localStorage.removeItem('ig_results');localStorage.removeItem('ig_avals');renderAdmin();updateStats();}">Limpar localmente</button>
+      <button class="btn btn-danger btn-sm" onclick="limparTodoFirebase()" style="background:#8B0000;color:#fff;border-color:#8B0000">🗑️ Limpar Firebase</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:2rem">
       <div class="stat-box"><div class="stat-val">${cols.length}</div><div class="stat-lbl">Colaboradores</div></div>
