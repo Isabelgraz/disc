@@ -10,6 +10,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="pt"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -1976,14 +1977,12 @@ function gerarWord(r,av,plano){
   var nomeR=(r.nome&&r.nome.trim())?r.nome.trim():(r.genero==='F'?'Esta colaboradora':'Este colaborador');
   var narrativa=adaptarGenero(getNarrativa(r.dominant,nomeR), r.genero, nomeR);
   function sn(txt){ return txt?String(txt).replace(/\{nome\}/g,nomeR):txt; }
-  // Substituir {nome} em todos os campos do perfil
-  function sn(txt){ return txt?txt.replace(/\{nome\}/g,nomeR):txt; }
   var infoS={
-    lideranca: sn(infoS.lideranca),
-    comunicacao: sn(infoS.comunicacao),
-    stress: sn(infoS.stress),
-    conflito: sn(infoS.conflito),
-    necessidade: sn(infoS.necessidade),
+    lideranca: sn(info.lideranca||''),
+    comunicacao: sn(info.comunicacao||''),
+    stress: sn(info.stress||''),
+    conflito: sn(info.conflito||''),
+    necessidade: sn(info.necessidade||''),
   };
   var narr360=av?gerar360narrativa(r,av):'';
   var total=r.total||Object.values(r.scores).reduce(function(a,b){return a+b;},0)||1;
